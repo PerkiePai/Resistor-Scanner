@@ -39,6 +39,7 @@ dependencies:
   cupertino_icons: ^1.0.2
   # http: ^0.13.0
   sqflite: ^2.2.8+4
+  web_socket_channel: ^2.4.0
   
 
 dev_dependencies:

@@ -1,9 +1,11 @@
-
-
+//app ui import
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
 
+//connection import
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +43,8 @@ class _MyHomePageState extends State<MyHomePage> {
   CameraController _controller;
   Future<void> _initializeControllerFuture;
   bool flash = false;
+
+  String watt = ''; //receive watt from python backend
 
   @override
   void initState() {
@@ -88,13 +92,10 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         centerTitle: true,
         leading: IconButton(
-          onPressed: () async {
-          },
+          onPressed: () async {},
           icon: const Icon(Icons.settings, size: 20),
         ),
-        actions: const [
-          CreditIconButton()
-        ],
+        actions: const [CreditIconButton()],
       ),
       body: Stack(
         // alignment: Alignment.topCenter,
@@ -217,7 +218,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: Column(
                                   children: [
                                     Text(
-                                      'output',
+                                      ": $watt :",
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         backgroundColor: Colors.transparent,
