@@ -1,8 +1,12 @@
 //app ui import
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
-
+//camera encode import
+import 'dart:convert';
+import 'dart:async';
+import 'dart:typed_data';
 //connection import
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -51,10 +55,24 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     _controller = CameraController(
       widget.camera,
-      ResolutionPreset.max,
+      ResolutionPreset.high,
     );
-
     _initializeControllerFuture = _controller.initialize();
+
+  }
+
+  Future<void> _startStreaming() async {
+    await _controller.startImageStream((CameraImage image) {
+      String encodedFrame = _encodeFrame(image);
+      print('get a frame!!');
+      // Do something with the encoded frame
+    });
+  }
+
+  String _encodeFrame(CameraImage image) {
+    Uint8List bytes = image.planes[0].bytes;
+    String encodedFrame = base64.encode(bytes);
+    return encodedFrame;
   }
 
   @override
