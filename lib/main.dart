@@ -6,7 +6,7 @@ import 'package:flutter/services.dart';
 //camera encode import
 import 'dart:convert';
 import 'dart:async';
-import 'dart:typed_data';
+
 //connection import
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -53,27 +53,25 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _controller = CameraController(
-      widget.camera,
-      ResolutionPreset.high,
-    );
+    _controller = CameraController(widget.camera, ResolutionPreset.high,
+        imageFormatGroup: ImageFormatGroup.jpeg);
+
     _initializeControllerFuture = _controller.initialize();
-
   }
 
-  Future<void> _startStreaming() async {
-    await _controller.startImageStream((CameraImage image) {
-      String encodedFrame = _encodeFrame(image);
-      print('get a frame!!');
-      // Do something with the encoded frame
-    });
-  }
+  // Future<void> _startStreaming() async {
+  //   await _controller.startImageStream((CameraImage image) {
+  //     String encodedFrame = _encodeFrame(image);
+  //     print('get a frame!!');
+  //     // Do something with the encoded frame
+  //   });
+  // }
 
-  String _encodeFrame(CameraImage image) {
-    Uint8List bytes = image.planes[0].bytes;
-    String encodedFrame = base64.encode(bytes);
-    return encodedFrame;
-  }
+  // String _encodeFrame(CameraImage image) {
+  //   Uint8List bytes = image.planes[0].bytes;
+  //   String encodedFrame = base64.encode(bytes);
+  //   return encodedFrame;
+  // }
 
   @override
   void dispose() {
@@ -110,7 +108,18 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         centerTitle: true,
         leading: IconButton(
-          onPressed: () async {},
+          onPressed: () async {
+            // Ensure that the camera is initialized.
+            await _initializeControllerFuture;
+
+            // Capture the frame as an image.
+            final image = await _controller.takePicture();
+
+            // Convert the image to Base64 JPEG format.
+            final bytes = await image.readAsBytes();
+            final base64Image = base64Encode(bytes);
+
+          },
           icon: const Icon(Icons.settings, size: 20),
         ),
         actions: const [CreditIconButton()],
