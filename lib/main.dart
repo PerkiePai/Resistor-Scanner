@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 //camera encode import
 import 'dart:convert';
 import 'dart:async';
+import 'dart:developer';
 
 //connection import
 import 'package:web_socket_channel/io.dart';
@@ -59,20 +60,6 @@ class _MyHomePageState extends State<MyHomePage> {
     _initializeControllerFuture = _controller.initialize();
   }
 
-  // Future<void> _startStreaming() async {
-  //   await _controller.startImageStream((CameraImage image) {
-  //     String encodedFrame = _encodeFrame(image);
-  //     print('get a frame!!');
-  //     // Do something with the encoded frame
-  //   });
-  // }
-
-  // String _encodeFrame(CameraImage image) {
-  //   Uint8List bytes = image.planes[0].bytes;
-  //   String encodedFrame = base64.encode(bytes);
-  //   return encodedFrame;
-  // }
-
   @override
   void dispose() {
     _controller.dispose();
@@ -118,7 +105,7 @@ class _MyHomePageState extends State<MyHomePage> {
             // Convert the image to Base64 JPEG format.
             final bytes = await image.readAsBytes();
             final base64Image = base64Encode(bytes);
-
+            log(base64Image);
           },
           icon: const Icon(Icons.settings, size: 20),
         ),
@@ -139,7 +126,43 @@ class _MyHomePageState extends State<MyHomePage> {
                           child: SizedOverflowBox(
                             size: const Size(300, 300),
                             alignment: Alignment.topCenter,
-                            child: CameraPreview(_controller),
+                            child: LayoutBuilder(
+                              builder: (BuildContext context,
+                                  BoxConstraints constraints) {
+                                WidgetsBinding.instance
+                                    .addPostFrameCallback((_) {
+                                  Timer.periodic(const Duration(seconds: 1), //delay before take a picture
+                                      (_) async {
+                                    bool isCaptureInProgress = false;
+                                    if (!_controller.value.isRecordingVideo &&
+                                        !isCaptureInProgress) {
+                                      isCaptureInProgress =
+                                          true; // Set flag to true before capturing
+
+                                      try {
+                                        await _initializeControllerFuture;
+
+                                        // Capture the frame as an image.
+                                        final image =
+                                            await _controller.takePicture();
+
+                                        // Convert the image to Base64 JPEG format.
+                                        final bytes = await image.readAsBytes();
+                                        final base64Image = base64Encode(bytes);
+                                        debugPrint('Get!!');
+                                      } catch (e) {
+                                        // Handle any exceptions that occur during capture  
+                                      }
+
+                                      isCaptureInProgress =
+                                          false; // Reset flag after capturing
+                                    }
+                                  });
+                                });
+
+                                return CameraPreview(_controller);
+                              },
+                            ),
                           ),
                         ),
                       ),
