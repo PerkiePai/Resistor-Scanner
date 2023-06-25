@@ -1,5 +1,7 @@
 //app ui import
 
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
@@ -9,8 +11,9 @@ import 'dart:async';
 import 'dart:developer';
 
 //connection import
-import 'package:web_socket_channel/io.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
+// import 'package:web_socket_channel/io.dart';
+// import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:http/http.dart' as http;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +26,7 @@ void main() async {
 class MyApp extends StatelessWidget {
   final CameraDescription camera;
 
-  const MyApp({Key key, this.camera}) : super(key: key);
+  const MyApp({Key? key, required this.camera}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +40,7 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatefulWidget {
   final CameraDescription camera;
 
-  const MyHomePage({Key key, this.camera}) : super(key: key);
+  const MyHomePage({Key? key, required this.camera}) : super(key: key);
 
   @override
   // ignore: library_private_types_in_public_api
@@ -45,8 +48,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  CameraController _controller;
-  Future<void> _initializeControllerFuture;
+  late CameraController _controller;
+  late Future<void> _initializeControllerFuture;
   bool flash = false;
 
   String watt = ''; //receive watt from python backend
@@ -54,8 +57,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
-    _controller = CameraController(widget.camera, ResolutionPreset.high,
-        imageFormatGroup: ImageFormatGroup.jpeg);
+    _controller = CameraController(widget.camera, ResolutionPreset.medium,
+        imageFormatGroup: ImageFormatGroup.jpeg,enableAudio: false,);
 
     _initializeControllerFuture = _controller.initialize();
   }
@@ -131,7 +134,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                   BoxConstraints constraints) {
                                 WidgetsBinding.instance
                                     .addPostFrameCallback((_) {
-                                  Timer.periodic(const Duration(seconds: 1), //delay before take a picture
+                                  Timer.periodic(const Duration(seconds: 3), //delay before take a picture
                                       (_) async {
                                     bool isCaptureInProgress = false;
                                     if (!_controller.value.isRecordingVideo &&
@@ -309,7 +312,7 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class CreditIconButton extends StatelessWidget {
-  const CreditIconButton({Key key}) : super(key: key);
+  const CreditIconButton({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -335,10 +338,10 @@ class CreditIconButton extends StatelessWidget {
               ),
             ),
             contentPadding: const EdgeInsets.all(20),
-            content: Align(
+            content: const Align(
               alignment: Alignment.topCenter,
               child: Column(
-                children: const [
+                children: [
                   Text('-------------------------------------------\n'),
                   Text(
                     'Developer\n',
