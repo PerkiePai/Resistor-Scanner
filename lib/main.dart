@@ -1,7 +1,4 @@
 //app ui import
-
-// ignore_for_file: unused_local_variable
-
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
@@ -52,13 +49,15 @@ class _MyHomePageState extends State<MyHomePage> {
   late Future<void> _initializeControllerFuture;
   bool flash = false;
 
-  String watt = ''; //receive watt from python backend
-
   @override
   void initState() {
     super.initState();
-    _controller = CameraController(widget.camera, ResolutionPreset.medium,
-        imageFormatGroup: ImageFormatGroup.jpeg,enableAudio: false,);
+    _controller = CameraController(
+      widget.camera,
+      ResolutionPreset.max,
+      imageFormatGroup: ImageFormatGroup.jpeg,
+      enableAudio: false,
+    );
 
     _initializeControllerFuture = _controller.initialize();
   }
@@ -68,6 +67,41 @@ class _MyHomePageState extends State<MyHomePage> {
     _controller.dispose();
     super.dispose();
   }
+
+String responseWatt = '';
+final url = 'http://127.0.0.1:5000/server';
+
+Future<void> sendBase64ToServer(String pictureBase64) async {
+  try {
+    final response = await http.post(
+      Uri.parse(url),
+      body: {'picture': pictureBase64},
+    );
+    log('base64ImageSent');
+    if (response.statusCode == 200) {
+      setState(() {
+        responseWatt = response.body;
+      });
+    } else {
+      setState(() {
+        responseWatt = 'Error: ${response.statusCode}';
+      });
+    }
+  } catch (e) {
+    setState(() {
+      responseWatt = 'Error: $e';
+    });
+  }
+}
+
+  // Future<String> getJsonFromServer(String responseWatt) async {
+  //   try {
+  //     final responseWatt = http.get(url as Uri);
+  //   } catch (e) {
+  //     setState(() {});
+  //   }
+  //   return responseWatt;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -98,18 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         centerTitle: true,
         leading: IconButton(
-          onPressed: () async {
-            // Ensure that the camera is initialized.
-            await _initializeControllerFuture;
-
-            // Capture the frame as an image.
-            final image = await _controller.takePicture();
-
-            // Convert the image to Base64 JPEG format.
-            final bytes = await image.readAsBytes();
-            final base64Image = base64Encode(bytes);
-            log(base64Image);
-          },
+          onPressed: () async {},
           icon: const Icon(Icons.settings, size: 20),
         ),
         actions: const [CreditIconButton()],
@@ -134,33 +157,47 @@ class _MyHomePageState extends State<MyHomePage> {
                                   BoxConstraints constraints) {
                                 WidgetsBinding.instance
                                     .addPostFrameCallback((_) {
-                                  Timer.periodic(const Duration(seconds: 3), //delay before take a picture
-                                      (_) async {
-                                    bool isCaptureInProgress = false;
+                                  bool isCaptureInProgress =
+                                      false; // Declare the flag outside the function or make it static if needed
+
+                                  Future<void> captureWithDelay() async {
                                     if (!_controller.value.isRecordingVideo &&
                                         !isCaptureInProgress) {
                                       isCaptureInProgress =
                                           true; // Set flag to true before capturing
-
                                       try {
                                         await _initializeControllerFuture;
-
                                         // Capture the frame as an image.
                                         final image =
                                             await _controller.takePicture();
-
                                         // Convert the image to Base64 JPEG format.
                                         final bytes = await image.readAsBytes();
                                         final base64Image = base64Encode(bytes);
-                                        debugPrint('Get!!');
+                                        sendBase64ToServer(base64Image);
+                                        
                                       } catch (e) {
-                                        // Handle any exceptions that occur during capture  
+                                        // Handle any exceptions that occur during capture
                                       }
-
                                       isCaptureInProgress =
                                           false; // Reset flag after capturing
                                     }
-                                  });
+                                  }
+
+// Define the delay duration (2 seconds in this case)
+                                  const Duration captureDelay =
+                                      Duration(seconds: 2);
+
+// Function to start capturing periodically with an accurate delay
+                                  Future<void>
+                                      startCapturePeriodically() async {
+                                    while (true) {
+                                      await Future.delayed(captureDelay);
+                                      await captureWithDelay();
+                                    }
+                                  }
+
+// Call this function to start the periodic capture process
+                                  startCapturePeriodically();
                                 });
 
                                 return CameraPreview(_controller);
@@ -271,7 +308,7 @@ class _MyHomePageState extends State<MyHomePage> {
                                 child: Column(
                                   children: [
                                     Text(
-                                      ": $watt :",
+                                      ": $responseWatt :",
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         backgroundColor: Colors.transparent,
