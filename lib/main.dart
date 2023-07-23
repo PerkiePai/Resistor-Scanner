@@ -68,40 +68,31 @@ class _MyHomePageState extends State<MyHomePage> {
     super.dispose();
   }
 
-String responseWatt = '';
-final url = 'https://f430-2403-6200-8860-9f42-e8db-7a7d-3e59-129c.ngrok-free.app/server';
+  String responseWatt = '';
+  final url = 'http://192.168.100.44:8000/server';
 
-Future<void> sendBase64ToServer(String pictureBase64) async {
-  try {
-    final response = await http.post(
-      Uri.parse(url),
-      body: {'picture': pictureBase64},
-    );
-    log('base64ImageSent');
-    if (response.statusCode == 200) {
+  Future<void> sendBase64ToServer(String pictureBase64) async {
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        body: {'picture': pictureBase64},
+      );
+      log('base64ImageSent');
+      if (response.statusCode == 200) {
+        setState(() {
+          responseWatt = response.body;
+        });
+      } else {
+        setState(() {
+          responseWatt = 'Error: ${response.statusCode}';
+        });
+      }
+    } catch (e) {
       setState(() {
-        responseWatt = response.body;
-      });
-    } else {
-      setState(() {
-        responseWatt = 'Error: ${response.statusCode}';
+        responseWatt = 'Error: $e';
       });
     }
-  } catch (e) {
-    setState(() {
-      responseWatt = 'Error: $e';
-    });
   }
-}
-
-  // Future<String> getJsonFromServer(String responseWatt) async {
-  //   try {
-  //     final responseWatt = http.get(url as Uri);
-  //   } catch (e) {
-  //     setState(() {});
-  //   }
-  //   return responseWatt;
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -173,8 +164,21 @@ Future<void> sendBase64ToServer(String pictureBase64) async {
                                         // Convert the image to Base64 JPEG format.
                                         final bytes = await image.readAsBytes();
                                         final base64Image = base64Encode(bytes);
-                                        sendBase64ToServer(base64Image);
-                                        
+                                        final response = await http.post(
+                                          Uri.parse(url),
+                                          body: {'picture': base64Image},
+                                        );
+                                        log('base64ImageSent');
+                                        if (response.statusCode == 200) {
+                                          setState(() {
+                                            responseWatt = response.body;
+                                          });
+                                        } else {
+                                          setState(() {
+                                            responseWatt =
+                                                'Error: ${response.statusCode}';
+                                          });
+                                        }
                                       } catch (e) {
                                         // Handle any exceptions that occur during capture
                                       }
@@ -312,7 +316,7 @@ Future<void> sendBase64ToServer(String pictureBase64) async {
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         backgroundColor: Colors.transparent,
-                                        fontSize: 40,
+                                        fontSize: 20,
                                         fontFamily: 'Kanit',
                                         color: Colors.white,
                                       ),
