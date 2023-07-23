@@ -289,6 +289,20 @@ class _MyHomePageState extends State<MyHomePage> {
                                   ),
                                 ),
                               ),
+                              //red line in the middle
+                              Container(
+                                margin:
+                                    const EdgeInsets.only(top: 263),
+                                width: 90,
+                                height: 1,
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(
+                                        color: Color.fromARGB(255, 255, 0, 0),
+                                        width: 0.5),
+                                  ),
+                                ),
+                              ),
                               //Color band 1
                               Container(
                                 margin: const EdgeInsets.only(
