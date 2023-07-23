@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
 String responseWatt = '';
-final url = 'http://127.0.0.1:5000/server';
+final url = 'https://f430-2403-6200-8860-9f42-e8db-7a7d-3e59-129c.ngrok-free.app/server';
 
 Future<void> sendBase64ToServer(String pictureBase64) async {
   try {

@@ -11,7 +11,7 @@ def processImage():
         #Process
         wattage = '100'
         #Respond
-        response_data = {'wattage': wattage}
+        response_data = wattage
     else:
         # If the request method is not POST, handle the error appropriately
         # For example, you might raise an exception or return an error message.
@@ -20,4 +20,4 @@ def processImage():
     return response_data 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=8000)
