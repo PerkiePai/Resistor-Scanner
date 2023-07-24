@@ -3,6 +3,7 @@ import cv2
 import numpy as np
 import base64
 from scipy.spatial import distance
+import time
 
 app = Flask(__name__)
 
@@ -24,6 +25,7 @@ def processImage():
     color_band_2 = image[27, 44]
     color_band_3 = image[27, 70]
     color_band_4 = image[27, 102]
+
     print(color_band_1)
     print(color_band_2)
     print(color_band_3)
@@ -86,6 +88,9 @@ def processImage():
     #Respond
     response_data = str(wattage_raw_value)
     print ("value: ", response_data) 
+
+    # time.sleep(0.1)
+
     return response_data
 
 def rgb_to_closest_color(rgb_value, color_list):

@@ -48,6 +48,8 @@ class _MyHomePageState extends State<MyHomePage> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
   bool flash = false;
+  bool isCaptureInProgress =
+      false; // New flag to track if capture is in progress
 
   @override
   void initState() {
@@ -71,26 +73,35 @@ class _MyHomePageState extends State<MyHomePage> {
   String responseWatt = '';
   final url = 'http://192.168.100.44:8000/server';
 
-  Future<void> sendBase64ToServer(String pictureBase64) async {
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        body: {'picture': pictureBase64},
-      );
-      log('base64ImageSent');
-      if (response.statusCode == 200) {
-        setState(() {
-          responseWatt = response.body;
-        });
-      } else {
-        setState(() {
-          responseWatt = 'Error: ${response.statusCode}';
-        });
+  // Method to handle image capture
+  Future<void> captureImage() async {
+    if (!_controller.value.isRecordingVideo && !isCaptureInProgress) {
+      isCaptureInProgress = true; // Set flag to true before capturing
+      try {
+        await _initializeControllerFuture;
+        // Capture the frame as an image.
+        final image = await _controller.takePicture();
+        // Convert the image to Base64 JPEG format.
+        final bytes = await image.readAsBytes();
+        final base64Image = base64Encode(bytes);
+        final response = await http.post(
+          Uri.parse(url),
+          body: {'picture': base64Image},
+        );
+        log('base64ImageSent');
+        if (response.statusCode == 200) {
+          setState(() {
+            responseWatt = response.body;
+          });
+        } else {
+          setState(() {
+            responseWatt = 'Error: ${response.statusCode}';
+          });
+        }
+      } catch (e) {
+        // Handle any exceptions that occur during capture
       }
-    } catch (e) {
-      setState(() {
-        responseWatt = 'Error: $e';
-      });
+      isCaptureInProgress = false; // Reset flag after capturing
     }
   }
 
@@ -148,59 +159,18 @@ class _MyHomePageState extends State<MyHomePage> {
                                   BoxConstraints constraints) {
                                 WidgetsBinding.instance
                                     .addPostFrameCallback((_) {
-                                  bool isCaptureInProgress =
-                                      false; // Declare the flag outside the function or make it static if needed
+                                  const Duration captureDelay = Duration(
+                                      seconds:
+                                          2); // Define the delay duration (2 seconds in this case)
 
-                                  Future<void> captureWithDelay() async {
-                                    if (!_controller.value.isRecordingVideo &&
-                                        !isCaptureInProgress) {
-                                      isCaptureInProgress =
-                                          true; // Set flag to true before capturing
-                                      try {
-                                        await _initializeControllerFuture;
-                                        // Capture the frame as an image.
-                                        final image =
-                                            await _controller.takePicture();
-                                        // Convert the image to Base64 JPEG format.
-                                        final bytes = await image.readAsBytes();
-                                        final base64Image = base64Encode(bytes);
-                                        final response = await http.post(
-                                          Uri.parse(url),
-                                          body: {'picture': base64Image},
-                                        );
-                                        log('base64ImageSent');
-                                        if (response.statusCode == 200) {
-                                          setState(() {
-                                            responseWatt = response.body;
-                                          });
-                                        } else {
-                                          setState(() {
-                                            responseWatt =
-                                                'Error: ${response.statusCode}';
-                                          });
-                                        }
-                                      } catch (e) {
-                                        // Handle any exceptions that occur during capture
-                                      }
-                                      isCaptureInProgress =
-                                          false; // Reset flag after capturing
-                                    }
-                                  }
-
-// Define the delay duration (2 seconds in this case)
-                                  const Duration captureDelay =
-                                      Duration(seconds: 2);
-
-// Function to start capturing periodically with an accurate delay
                                   Future<void>
                                       startCapturePeriodically() async {
                                     while (true) {
                                       await Future.delayed(captureDelay);
-                                      await captureWithDelay();
+                                      await captureImage();
                                     }
                                   }
 
-// Call this function to start the periodic capture process
                                   startCapturePeriodically();
                                 });
 
@@ -291,8 +261,7 @@ class _MyHomePageState extends State<MyHomePage> {
                               ),
                               //red line in the middle
                               Container(
-                                margin:
-                                    const EdgeInsets.only(top: 263),
+                                margin: const EdgeInsets.only(top: 263),
                                 width: 90,
                                 height: 1,
                                 decoration: const BoxDecoration(
