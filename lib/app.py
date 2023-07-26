@@ -16,94 +16,90 @@ def processImage():
     decoded_bytes = base64.b64decode(base64_string)
     nparr = np.frombuffer(decoded_bytes, np.uint8)
     image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
-    #Crop to 68mm * 65mm or 1 : 2.36 or 130px * 55px
-    x1, y1 = 535, 690  # Top-left coordinates (x1, y1)
-    x2, y2 = 665, 745  # Bottom-right coordinates (x2, y2)
-    image = image[y1:y2, x1:x2]
-    #Mark the location of the color band
-    color_band_1 = image[27, 18]
-    color_band_2 = image[27, 44]
-    color_band_3 = image[27, 70]
-    color_band_4 = image[27, 102]
+    
+    # Convert the image from BGR to HSV color space
+    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    # Process the frame to find resistor value
+    start_y = hsv_image.shape[0] // 2 - 265
+    end_y = hsv_image.shape[0] // 2 - 235
+    start_x = hsv_image.shape[1] // 2 - 65
+    end_x = hsv_image.shape[1] // 2 + 65
 
-    print(color_band_1)
-    print(color_band_2)
-    print(color_band_3)
-    print(color_band_4)
+    submat = hsv_image[start_y: end_y, start_x : end_x] # [height, width]
 
-#ค่าหลัก 1 10
-    color_list_for_band_1_2 = [
-        ('0', (90, 90, 90)), #black
-        ('1', (90, 115, 150)), #brown
-        ('2', (105, 120, 205)), #red
-        ('3', (70, 135, 215)), #orange
-        ('4', (30, 220, 220)), #yellow
-        ('5', (70, 200, 170)), #green
-        ('6', (215, 150, 5)), #blue
-        ('7', (170, 100, 80)), #purple
-        ('8', (150, 150, 140)), #grey
-        ('9', (225, 225, 215)), #white
-        # ('', (70, 170, 220)), #gold
-        # ('', (147, 147, 137)), #silver
-    ]
-#ตัวคูณ
-    color_list_for_band_3 = [
-        ('1', (90, 90, 90)), #black
-        ('10', (90, 115, 150)), #brown
-        ('100', (105, 120, 205)), #red
-        ('1000', (70, 135, 215)), #orange
-        ('10000', (30, 220, 220)), #yellow
-        ('100000', (70, 200, 170)), #green
-        ('1000000', (215, 150, 5)), #blue
-        ('10000000', (170, 100, 80)), #purple
-        # ('', (150, 150, 140)), #grey
-        # ('', (225, 225, 215)), #white
-        ('0.1', (70, 170, 220)), #gold
-        ('0.01', (147, 147, 137)), #silver
-    ]
-#ค่าคลาดเคลื่อน
-    color_list_for_band_4 = [
-        # ('', (90, 90, 90)), #black
-        ('1', (90, 115, 150)), #brown
-        ('2', (105, 120, 205)), #red
-        # ('', (70, 135, 215)), #orange
-        # ('', (30, 220, 220)), #yellow
-        ('0.5', (70, 200, 170)), #green
-        ('0.25', (215, 150, 5)), #blue
-        ('0.10', (170, 100, 80)), #purple
-        ('0.05', (150, 150, 140)), #grey
-        # ('', (225, 225, 215)), #white
-        ('5', (70, 170, 220)), #gold
-        ('10', (147, 147, 137)), #silver
+    resistor_locations = find_locations(submat)
+
+    if len(resistor_locations) >= 3:
+        # Recover the resistor value
+        k_tens = list(resistor_locations.keys())[0]
+        k_units = list(resistor_locations.keys())[1]
+        k_power = list(resistor_locations.keys())[2]
+
+        value = 10 * resistor_locations[k_tens] + resistor_locations[k_units]
+        value *= 10 ** resistor_locations[k_power]
+
+        value_str = ''
+        if value >= 1e3 and value < 1e6:
+            value_str = f"{value / 1e3} KOhm"
+            return value_str
+        elif value >= 1e6:
+            value_str = f"{value / 1e6} MOhm"
+            return value_str
+        else:
+            value_str = f"{value} Ohm"
+            return value_str
+ 
+    return " "
+    
+
+# Function to find color bands and their centroids
+def find_locations(search_mat):
+    locations = {}
+    areas = {}
+
+# HSV color bounds for resistor color bands
+    COLOR_BOUNDS = [
+        [(0, 0, 0), (180, 250, 50)],         # black
+        [(0, 90, 10), (15, 250, 100)],       # brown
+        [(0, 0, 0), (0, 0, 0)],              # red (defined by two bounds)
+        [(4, 100, 100), (9, 250, 150)],      # orange
+        [(20, 130, 100), (30, 250, 160)],    # yellow
+        [(45, 50, 60), (72, 250, 150)],      # green
+        [(80, 50, 50), (106, 250, 150)],     # blue
+        [(130, 40, 50), (155, 250, 150)],    # purple
+        [(0, 0, 50), (180, 50, 80)],         # gray
+        [(0, 0, 90), (180, 15, 140)]         # white
     ]
 
-    closest_color_name_1 = float(rgb_to_closest_color(color_band_1, color_list_for_band_1_2))
-    closest_color_name_2 = float(rgb_to_closest_color(color_band_2, color_list_for_band_1_2))
-    closest_color_name_3 = float(rgb_to_closest_color(color_band_3, color_list_for_band_3))
-    closest_color_name_4 = float(rgb_to_closest_color(color_band_4, color_list_for_band_4)
-)
-    wattage_raw_value = int((closest_color_name_1*10+closest_color_name_2)*closest_color_name_3 )
-    # tolerance = float(wattage_raw_value + "±" + (closest_color_name_4*wattage_raw_value)/100)
+    # HSV color bounds for red (wraps around in HSV)
+    LOWER_RED1 = (0, 65, 100)
+    UPPER_RED1 = (2, 250, 150)
+    LOWER_RED2 = (171, 65, 50)
+    UPPER_RED2 = (180, 250, 150)
 
-    #Respond
-    response_data = str(wattage_raw_value)
-    print ("value: ", response_data) 
+    for i in range(len(COLOR_BOUNDS)):
+        lower_bound, upper_bound = COLOR_BOUNDS[i]
+        if i == 2:
+            # Combine the two red ranges
+            mask1 = cv2.inRange(search_mat, LOWER_RED1, UPPER_RED1)
+            mask2 = cv2.inRange(search_mat, LOWER_RED2, UPPER_RED2)
+            mask = cv2.bitwise_or(mask1, mask2)
+        else:
+            mask = cv2.inRange(search_mat, np.array(lower_bound), np.array(upper_bound))
 
-    # time.sleep(0.1)
+        contours, _ = cv2.findContours(mask, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
 
-    return response_data
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if area > 20:
+                M = cv2.moments(contour)
+                cx = int(M["m10"] / M["m00"])
 
-def rgb_to_closest_color(rgb_value, color_list):
-    min_distance = float('inf')
-    closest_color = None
+                if cx not in areas or area > areas[cx]:
+                    areas[cx] = area
+                    locations[cx] = i
 
-    for color_name, color_rgb in color_list:
-        dist = distance.euclidean(rgb_value, color_rgb)
-        if dist < min_distance:
-            min_distance = dist
-            closest_color = color_name
-
-    return closest_color
+    return locations
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8000)

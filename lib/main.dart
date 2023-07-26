@@ -8,8 +8,6 @@ import 'dart:async';
 import 'dart:developer';
 
 //connection import
-// import 'package:web_socket_channel/io.dart';
-// import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:http/http.dart' as http;
 
 void main() async {
@@ -88,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Uri.parse(url),
           body: {'picture': base64Image},
         );
-        log('base64ImageSent');
+        log(base64Image);
         if (response.statusCode == 200) {
           setState(() {
             responseWatt = response.body;
