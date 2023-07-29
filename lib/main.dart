@@ -86,7 +86,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Uri.parse(url),
           body: {'picture': base64Image},
         );
-        log(base64Image);
+        log("base64Image");
         if (response.statusCode == 200) {
           setState(() {
             responseWatt = response.body;
@@ -118,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
           statusBarIconBrightness: Brightness.dark,
           statusBarBrightness: Brightness.light,
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: const Color.fromARGB(255, 211, 195, 169),
         shape: const RoundedRectangleBorder(
             borderRadius: BorderRadius.only(
                 bottomLeft: Radius.circular(15),
@@ -131,10 +131,10 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         centerTitle: true,
-        leading: IconButton(
-          onPressed: () async {},
-          icon: const Icon(Icons.settings, size: 20),
-        ),
+        // leading: IconButton(
+        //   onPressed: () async {},
+        //   icon: const Icon(Icons.settings, size: 20),
+        // ),
         actions: const [CreditIconButton()],
       ),
       body: Stack(
@@ -223,8 +223,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 decoration: BoxDecoration(
                                     color: Colors.transparent,
                                     border: Border.all(
-                                        color:
-                                            const Color.fromARGB(100, 0, 0, 0),
+                                        color: const Color.fromARGB(
+                                            100, 211, 195, 169),
                                         width: 2),
                                     borderRadius: const BorderRadius.all(
                                         Radius.circular(10))),
@@ -238,7 +238,8 @@ class _MyHomePageState extends State<MyHomePage> {
                                 decoration: const BoxDecoration(
                                   border: Border(
                                     top: BorderSide(
-                                        color: Color.fromARGB(100, 0, 0, 0),
+                                        color:
+                                            Color.fromARGB(100, 211, 195, 169),
                                         width: 2),
                                   ),
                                 ),
@@ -252,24 +253,25 @@ class _MyHomePageState extends State<MyHomePage> {
                                 decoration: const BoxDecoration(
                                   border: Border(
                                     top: BorderSide(
-                                        color: Color.fromARGB(100, 0, 0, 0),
+                                        color:
+                                            Color.fromARGB(100, 211, 195, 169),
                                         width: 2),
                                   ),
                                 ),
                               ),
-                              //red line in the middle
-                              Container(
-                                margin: const EdgeInsets.only(top: 263),
-                                width: 90,
-                                height: 1,
-                                decoration: const BoxDecoration(
-                                  border: Border(
-                                    top: BorderSide(
-                                        color: Color.fromARGB(255, 255, 0, 0),
-                                        width: 0.5),
-                                  ),
-                                ),
-                              ),
+                              // //red line in the middle
+                              // Container(
+                              //   margin: const EdgeInsets.only(top: 263),
+                              //   width: 90,
+                              //   height: 1,
+                              //   decoration: const BoxDecoration(
+                              //     border: Border(
+                              //       top: BorderSide(
+                              //           color: Color.fromARGB(255, 255, 0, 0),
+                              //           width: 0.5),
+                              //     ),
+                              //   ),
+                              // ),
                               //Color band 1
                               Container(
                                 margin: const EdgeInsets.only(
@@ -280,20 +282,23 @@ class _MyHomePageState extends State<MyHomePage> {
                                 decoration: const BoxDecoration(
                                   border: Border(
                                     left: BorderSide(
-                                        color: Color.fromARGB(100, 0, 0, 0),
+                                        color:
+                                            Color.fromARGB(100, 211, 195, 169),
                                         width: 1.5),
                                     right: BorderSide(
-                                        color: Color.fromARGB(100, 0, 0, 0),
+                                        color:
+                                            Color.fromARGB(100, 211, 195, 169),
                                         width: 1.5),
                                   ),
                                 ),
                               ),
                               Container(
-                                padding: const EdgeInsets.only(top: 40),
+                                padding: const EdgeInsets.only(top: 80),
                                 child: Column(
                                   children: [
                                     Text(
-                                      ": $responseWatt :",
+                                      // ignore: unnecessary_string_interpolations
+                                      "$responseWatt",
                                       textAlign: TextAlign.center,
                                       style: const TextStyle(
                                         backgroundColor: Colors.transparent,
@@ -318,6 +323,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+          backgroundColor: const Color.fromARGB(255, 211, 195, 169),
           child: flash
               ? const Icon(Icons.flashlight_on)
               : const Icon(Icons.flashlight_off),
@@ -389,6 +395,14 @@ class CreditIconButton extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+                  Text('https://github.com/',
+                      style: TextStyle(
+                        fontSize: 12,
+                      )),
+                  Text('PerkiePai/Resistor-Scanner',
+                      style: TextStyle(
+                        fontSize: 12,
+                      )),
                   //scr ( qrcode or github )
                 ],
               ),

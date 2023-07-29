@@ -1,9 +1,7 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request
 import cv2
 import numpy as np
 import base64
-from scipy.spatial import distance
-import time
 
 app = Flask(__name__)
 
@@ -20,8 +18,8 @@ def processImage():
     # Convert the image from BGR to HSV color space
     hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
     # Process the frame to find resistor value
-    start_y = hsv_image.shape[0] // 2 - 265
-    end_y = hsv_image.shape[0] // 2 - 235
+    start_y = hsv_image.shape[0] // 2 - 266
+    end_y = hsv_image.shape[0] // 2 - 245
     start_x = hsv_image.shape[1] // 2 - 65
     end_x = hsv_image.shape[1] // 2 + 65
 
@@ -40,16 +38,17 @@ def processImage():
 
         value_str = ''
         if value >= 1e3 and value < 1e6:
-            value_str = f"{value / 1e3} KOhm"
+            value_str = f"{value / 1e3} KΩ"
             return value_str
         elif value >= 1e6:
-            value_str = f"{value / 1e6} MOhm"
+            value_str = f"{value / 1e6} MΩ"
             return value_str
         else:
-            value_str = f"{value} Ohm"
+            value_str = f"{value} Ω"
             return value_str
  
-    return " "
+    return ""
+
     
 
 # Function to find color bands and their centroids
